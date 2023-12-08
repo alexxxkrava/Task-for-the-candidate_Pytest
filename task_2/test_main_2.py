@@ -1,13 +1,42 @@
 import pytest
 from main_2 import Engine_2D, Circle, Triangle, Rectangle
+@pytest.fixture
+def engine():
+    return Engine_2D()
+
+def test_add_figure(engine):
+    assert len(engine.canvas) == 0
+    circle = Circle(0, 0, 5)
+    engine.add_figure(circle)
+    assert len(engine.canvas) == 1
+    assert engine.canvas[0] == circle
 
 @pytest.mark.parametrize('color', ['red', 'blue', None, ''])
-def test_color(color):
-    engine = Engine_2D()
+def test_color(engine, color):
     if color is None or color == '':
         assert False, "Color doesn't exists."
     else:
         engine.set_color(color)
+
+def test_draw_multiple_figures(engine, capsys):
+    circle = Circle(0, 0, 5)
+    triangle = Triangle(0, 0, 1, 0, 0, 1)
+    rectangle = Rectangle(0, 0, 2, 0, 2, 2, 0, 2)
+
+    engine.add_figure(circle)
+    engine.add_figure(triangle)
+    engine.add_figure(rectangle)
+
+    engine.set_color('red')
+    engine.draw()
+
+    captured = capsys.readouterr()
+    expected_output = ('Figure color red\n'
+                       'Drawing circle: (0, 0) with radius 5.\n'
+                       'Drawing triangle with coordinates: (0, 0), (1, 0), (0, 1).\n'
+                       'Drawing rectangle with coordinates: (0, 0), (2, 0), (2, 2), (0, 2).\n')
+
+    assert captured.out == expected_output
 
 @pytest.mark.parametrize('x, y, radius, expected', [(0, 0, 5, True),
                                                     (0, 0, -5, False), # Радиус < 0 (недопустимо)
